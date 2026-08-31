@@ -3,17 +3,19 @@ sim:
   iterations: 10
 
 # Circuit source configuration:
-#   mode: "tket"  — use pytket-dqc dist_commands text file
-#   mode: "cisco" — use Cisco QASM 3.0 file directly
+#   mode: "tket"     — use pytket-dqc dist_commands text file
+#   mode: "cisco"    — use Cisco QASM 3.0 file directly (v1 naming: _qubit/_comm_qubit)
+#   mode: "cisco_v2" — use Cisco QASM 3.0 file directly (v2 naming: _qcomp_qpu_/_qcomm_qpu_)
 circuit:
-  mode: "tket"
+  mode: "cisco_v2"
   pre_schedule_entanglement: false
   # Path to the dist_commands file (used when mode=tket)
   dist_commands_file: "commands/grover_4_3qpu.txt"
   #dist_commands_file: "commands/grover_4q_3qpu.txt"
   # "commands/dist_commands_4q.txt"
   # Path to the QASM 3.0 file (used when mode=cisco)
-  qasm_file: "qasm/grover4_1qpu.qasm"
+  # qasm_file: "qasm/grover4_1qpu.qasm"
+  qasm_file: "qasm/2qpu_plaq121_obc_L8_g0.500_dt0.1000_n8.qasm"
   # "qasm/grover4_topv1.qasm"
   # "qasm/grover12_3qpu.qasm"
   # measure_qubits: which memory positions to read per QPU after each run.
@@ -42,7 +44,7 @@ circuit:
 
 qpu:
   num_qpu_nodes: 2
-  qubits: 6
+  qubits: 4
   two_q_depolar_prob: 0    # 0.0001  — depolarising probability after every 2-qubit gate (cx, CU1, CNOT)
   one_q_depolar_prob: 0    # 0.00001 — depolarising probability after every 1-qubit gate (h, x, z, rz, sx, sdg, u1, u2, u3, s)
   #two_q_depolar_prob: 0.0001
