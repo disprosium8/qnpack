@@ -6,9 +6,9 @@
 #   this sweep  → vary emission_fidelity, fix depol=0
 #   depol sweep → vary depol, fix emission_fidelity=1.0
 
-source_parameters: /Users/cjain/Documents/Repositories/charu-qnpack/qnpack/qnpack/dqc/parameters.yml
-base_dir: /Users/cjain/Documents/Repositories/charu-qnpack/qnpack/qnpack/dqc
-output_dir: /Users/cjain/Documents/Repositories/charu-qnpack/qnpack/qnpack/dqc/results/plaquette_emf_sweep_n6
+source_parameters: qnpack/dqc/parameters.yml
+base_dir: qnpack/dqc
+output_dir: qnpack/dqc/results/plaquette_emf_sweep_n6
 
 n_steps: 6
 num_runs: 500

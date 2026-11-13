@@ -23,7 +23,7 @@ circuit:
   measure_qubits: '{1: [21, 20], 2: [20], 3: [20]}'
   mode: cisco_v2
   pre_schedule_entanglement: false
-  qasm_file: /Users/cjain/Documents/Repositories/charu-qnpack/qnpack/qnpack/dqc/qasm/plaquette_sweep/9qubit_2qpu_plaq2d121_obc_Lx3_Ly3_g1.000_dt0.1000_n6.qasm
+  qasm_file: /Users/ezra/repos/qnpack/qnpack/dqc/qasm/plaquette_sweep/9qubit_2qpu_plaq2d121_obc_Lx3_Ly3_g1.000_dt0.1000_n6.qasm
 clock:
   HZ: 1000000
   max_ticks: -1
@@ -49,7 +49,7 @@ memory:
 qpu:
   collection_efficiency: 0.85
   emission_duration: 0
-  emission_fidelity: 1.00
+  emission_fidelity: 1.0
   num_qpu_nodes: 3
   one_q_depolar_prob: 0.0
   qubits: 22
