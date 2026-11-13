@@ -124,7 +124,7 @@ class DQCSimulation(Simulation):
         self._last_protocol = None
 
         setup_logging(
-            name=__name__,
+            name=__package__ or __name__,
             level=logging.DEBUG if self.cfg.sim.debug else logging.INFO,
             logfile=logfile,
         )
@@ -223,7 +223,7 @@ class DQCSimulation(Simulation):
         return results, col_names, completed[0][2], completed[0][3]
 
     @staticmethod
-    def _execute_jobs(jobs, max_workers, total_runs):
+    def _execute_jobs(jobs, max_workers, total_runs, strip_none=True):
         jobs_list = list(jobs)
         n = len(jobs_list)
         results = [None] * n
@@ -250,7 +250,7 @@ class DQCSimulation(Simulation):
                 f"{hangs}/{n} run(s) hit the simulation-time safety cap and "
                 "were discarded. The remaining %d runs are intact.", len(valid)
             )
-        return valid
+        return valid if strip_none else results
 
     def _run_one(self, run_idx, measure_qubits, frontend,
                  topology_data):
@@ -291,6 +291,24 @@ class DQCSimulation(Simulation):
         start_time = ns.sim_time()
         log.info(
             f"--- Run {run_idx}: SIMULATION START TIME: {start_time} ns ---"
+        )
+
+        from netsquid.components.clock import Clock
+
+        def _stop_on_protocol_success(ev):
+            # Calling sim_run(end_time=T) in pydynaa fast-forwards sim_time()
+            # to T when the event queue drains unless sim_stop() is called.
+            # Stop at the exact completion instant only if no clock is stranded
+            # (so an orphaned clock still runs into the safety cap).
+            for node in net.nodes.values():
+                for sub in node.subcomponents.values():
+                    if isinstance(sub, Clock) and sub.is_running:
+                        return
+            ns.sim_stop()
+
+        stop_handler = pd.EventHandler(_stop_on_protocol_success)
+        protocol._wait(
+            stop_handler, entity=protocol, event_type=Signals.SUCCESS.value
         )
 
         protocol.start()
@@ -504,12 +522,28 @@ class DQCSimulation(Simulation):
             for _, _, config_data in scheduled
             for run_idx in range(num_runs)
         )
-        completed = self._execute_jobs(jobs, max_workers, len(combos) * num_runs)
-        self._last_protocol = completed[-1][4]
+        raw_completed = self._execute_jobs(
+            jobs, max_workers, len(combos) * num_runs, strip_none=False
+        )
+        valid_completed = [r for r in raw_completed if r is not None]
+        if not valid_completed:
+            raise RuntimeError(
+                "All simulation runs were discarded (every run hit the "
+                "simulation-time safety cap). Check for orphaned clocks."
+            )
+        self._last_protocol = valid_completed[-1][4]
 
         final_data = []
         for combo_idx, (params, noise_label, _) in enumerate(scheduled):
-            config_runs = completed[combo_idx * num_runs:(combo_idx + 1) * num_runs]
+            raw_slice = raw_completed[
+                combo_idx * num_runs:(combo_idx + 1) * num_runs
+            ]
+            config_runs = [r for r in raw_slice if r is not None]
+            if not config_runs:
+                raise RuntimeError(
+                    f"All simulation runs for config '{noise_label}' were "
+                    "discarded (every run hit the simulation-time safety cap)."
+                )
             results = [item[0] for item in config_runs]
             col_names = config_runs[0][1]
             num_output_bits = config_runs[0][2]
